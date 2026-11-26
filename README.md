@@ -2,6 +2,8 @@
 
 A Delphi VCL app that implements the **Discrete Fourier Transform** from scratch and shows the magnitude spectrum of a test signal and of a recorded ECG.
 
+![ECG from filetext.txt and its DFT spectrum](screenshot.png)
+
 ## Signals
 1. **X+Y**: two summed sines, `x(t) = sin(2π·5t) + sin(2π·20t)`, with N = 256 samples
 2. **ECG**: loaded from `filetext.txt` in the [BukaFileLaluPlot / Signal-File-Plotter](https://github.com/ais3rd/Signal-File-Plotter) project. Each line is `time;value` and the value after `;` is used. N equals the number of lines (5000 samples, 10 s at 500 Hz).
