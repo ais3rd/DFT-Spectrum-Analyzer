@@ -48,11 +48,10 @@ object Form1: TForm1
     Width = 289
     Height = 41
     Caption = 'Signals'
-    Columns = 3
+    Columns = 2
     Items.Strings = (
       'X+Y'
-      'ECG'
-      'ECG + Noise')
+      'ECG')
     TabOrder = 1
   end
   object Chart2: TChart

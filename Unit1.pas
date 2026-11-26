@@ -28,17 +28,13 @@ var
   Form1: TForm1;
   // SignalData : sampel sinyal x[n]
   SignalData: array of double;
-  // t       : waktu dalam satu detak EKG (0 sampai 1)
   // t_sec   : waktu dalam detik
-  // d       : jarak Gaussian (t - mu) / sigma
   // X       : frekuensi sinyal sinus pertama (Hz)
   // Y       : frekuensi sinyal sinus kedua (Hz)
-  // Noise50 : nilai noise 50 Hz
-  // Noise80 : nilai noise 80 Hz
   // Re_Xk   : bagian real dari X[k]
   // Im_Xk   : bagian imajiner dari X[k]
   // Mag     : magnitudo |X[k]|
-  t, t_sec, d, X, Y, Noise50, Noise80, Re_Xk, Im_Xk, Mag: double;
+  t_sec, X, Y, Re_Xk, Im_Xk, Mag: double;
   // i : indeks sampel n
   // k : indeks bin frekuensi
   // N : jumlah sampel
@@ -48,56 +44,53 @@ implementation
 
 {$R *.dfm}
 
+const
+  // filetext.txt milik proyek BukaFileLaluPlot, relatif terhadap DFT\Win32\Debug\DFT.exe
+  ECGFile = '..\..\..\BukaFileLaluPlot\filetext.txt';
+
 procedure TForm1.GetSignal;
+var
+  // Lines   : isi file EKG, satu baris per sampel
+  // sep_pos : posisi pemisah ';' di dalam baris
+  Lines: TStringList;
+  sep_pos: integer;
 begin
-  N := 256;
-  setlength(SignalData, N);
+  case RadioGroup1.ItemIndex of
+    0:
+      begin
+        N := 256;
+        setlength(SignalData, N);
 
-  X := 5.0;
-  Y := 20.0;
+        X := 5.0;
+        Y := 20.0;
 
-  for i:= 0 to N - 1 do
-    begin
-      // Konversi sampel ke waktu: t = n / N
-      t_sec := i / N;
-
-      case RadioGroup1.ItemIndex of
-        0:
+        for i:= 0 to N - 1 do
           begin
+            // Konversi sampel ke waktu: t = n / N
+            t_sec := i / N;
             // Penjumlahan dua sinyal sinus: x(t) = sin(2 * pi * X * t) + sin(2 * pi * Y * t)
             SignalData[i] := sin(2 * pi * X * t_sec) + sin(2 * pi * Y * t_sec);
           end;
-
-        1:
-          begin
-            // EKG sintetis: penjumlahan pulsa Gaussian, A * exp(-((t - mu) / sigma)^2)
-            // Waktu periodik (2 detak): t = (n mod (N/2)) / (N/2)
-            t := (i mod (N div 2)) / (N / 2);
-            d := (t - 0.20) / 0.03; SignalData[i] := 0.15 * exp(-d * d);                   // Gelombang P
-            d := (t - 0.35) / 0.01; SignalData[i] := SignalData[i] - 0.15 * exp(-d * d);   // Gelombang Q
-            d := (t - 0.38) / 0.015; SignalData[i] := SignalData[i] + 1.00 * exp(-d * d);  // Gelombang R
-            d := (t - 0.41) / 0.01; SignalData[i] := SignalData[i] - 0.25 * exp(-d * d);   // Gelombang S
-            d := (t - 0.65) / 0.05; SignalData[i] := SignalData[i] + 0.30 * exp(-d * d);   // Gelombang T
-          end;
-
-        2:
-          begin
-            // EKG sintetis: penjumlahan pulsa Gaussian, A * exp(-((t - mu) / sigma)^2)
-            // Waktu periodik (2 detak): t = (n mod (N/2)) / (N/2)
-            t := (i mod (N div 2)) / (N / 2);
-            d := (t - 0.20) / 0.03; SignalData[i] := 0.15 * exp(-d * d);                   // Gelombang P
-            d := (t - 0.35) / 0.01; SignalData[i] := SignalData[i] - 0.15 * exp(-d * d);   // Gelombang Q
-            d := (t - 0.38) / 0.015; SignalData[i] := SignalData[i] + 1.00 * exp(-d * d);  // Gelombang R
-            d := (t - 0.41) / 0.01; SignalData[i] := SignalData[i] - 0.25 * exp(-d * d);   // Gelombang S
-            d := (t - 0.65) / 0.05; SignalData[i] := SignalData[i] + 0.30 * exp(-d * d);   // Gelombang T
-
-            // Noise sinusoidal: A * sin(2 * pi * f * t), pada 50 Hz (jala-jala listrik) dan 80 Hz
-            Noise50 := 0.20 * sin(2 * pi * 50.0 * t_sec);
-            Noise80 := 0.15 * sin(2 * pi * 80.0 * t_sec);
-            SignalData[i] := SignalData[i] + Noise50 + Noise80;
-          end;
       end;
-    end;
+
+    1:
+      begin
+        // EKG dari file: tiap baris "waktu;nilai", ambil nilai setelah ';'
+        Lines := TStringList.Create;
+        try
+          Lines.LoadFromFile(ExpandFileName(ExtractFilePath(ParamStr(0)) + ECGFile));
+          N := Lines.Count;
+          setlength(SignalData, N);
+          for i:= 0 to N - 1 do
+            begin
+              sep_pos := Pos(';', Lines[i]);
+              SignalData[i] := StrToFloat(Copy(Lines[i], sep_pos + 1, Length(Lines[i])));
+            end;
+        finally
+          Lines.Free;
+        end;
+      end;
+  end;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
