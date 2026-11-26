@@ -24,7 +24,14 @@ Im{X[k]} = -Σ x[n] · sin(2π·k·n / N)
 |X[k]|   = √(Re² + Im²) / N        (k = 0, DC)
 |X[k]|   = √(Re² + Im²) / (N/2)    (k > 0)
 ```
-The spectrum is plotted for `k = 0 … N/2 − 1` as a bar chart. For the ECG file, bin `k` is `k · fs / N = k · 0.1 Hz`.
+The spectrum is plotted for `k = 0 … N/2 − 1` as a bar chart, with each bin converted to Hz:
+```
+f = k · fs / N
+```
+| Signal | fs | N | Bin width | Range shown |
+|---|---|---|---|---|
+| X+Y | 256 Hz | 256 | 1 Hz | 0–127 Hz |
+| ECG | 500 Hz | 5000 | 0.1 Hz | 0–249.9 Hz |
 
 > The ECG values use a decimal comma (`-0,115`), so `StrToFloat` needs a comma-decimal Windows locale (e.g. Indonesian).
 

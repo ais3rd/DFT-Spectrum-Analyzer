@@ -34,7 +34,8 @@ var
   // Re_Xk   : bagian real dari X[k]
   // Im_Xk   : bagian imajiner dari X[k]
   // Mag     : magnitudo |X[k]|
-  t_sec, X, Y, Re_Xk, Im_Xk, Mag: double;
+  // fs      : frekuensi sampling (Hz)
+  t_sec, X, Y, Re_Xk, Im_Xk, Mag, fs: double;
   // i : indeks sampel n
   // k : indeks bin frekuensi
   // N : jumlah sampel
@@ -59,6 +60,8 @@ begin
     0:
       begin
         N := 256;
+        // N sampel dalam 1 detik, jadi fs = N
+        fs := N;
         setlength(SignalData, N);
 
         X := 5.0;
@@ -80,6 +83,8 @@ begin
         try
           Lines.LoadFromFile(ExpandFileName(ExtractFilePath(ParamStr(0)) + ECGFile));
           N := Lines.Count;
+          // filetext.txt direkam pada 500 Hz (sama dengan BukaFileLaluPlot)
+          fs := 500;
           setlength(SignalData, N);
           for i:= 0 to N - 1 do
             begin
@@ -125,7 +130,8 @@ begin
       else
         Mag := sqrt(sqr(Re_Xk) + sqr(Im_Xk)) / (N / 2);
 
-      Series2.addxy(k, Mag);
+      // Bin k ke frekuensi: f = k * fs / N (Hz)
+      Series2.addxy(k * fs / N, Mag);
     end;
 end;
 
